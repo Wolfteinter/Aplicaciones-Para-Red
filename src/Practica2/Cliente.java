@@ -11,9 +11,12 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JFileChooser;
 import javax.swing.JList;
 import javax.swing.ListSelectionModel;
@@ -22,7 +25,8 @@ import javax.swing.ListSelectionModel;
  *
  * @author wolfteinter
  */
-public class Cliente extends javax.swing.JFrame {
+//177.246.83.73
+public class Cliente extends javax.swing.JFrame implements Runnable{
 
     /**
      * Creates new form Cliente
@@ -31,12 +35,14 @@ public class Cliente extends javax.swing.JFrame {
     File f;
     JList lista;
     boolean bandera;
-  
+    private Thread hilo = null;
 
     public Cliente() {
-
+        this.hilo = new Thread(this);
         f = new File("archivos_cliente");
         initComponents();
+        this.btnRecibir.setEnabled(true);
+        hilo.start();
     }
 
     /**
@@ -57,6 +63,9 @@ public class Cliente extends javax.swing.JFrame {
         btnConectar = new javax.swing.JButton();
         btnRecibir = new javax.swing.JRadioButton();
         jButton3 = new javax.swing.JButton();
+        pane = new javax.swing.JScrollPane();
+        jListFiles = new javax.swing.JList<>();
+        jButton1 = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -95,6 +104,20 @@ public class Cliente extends javax.swing.JFrame {
             }
         });
 
+        jListFiles.setModel(new javax.swing.AbstractListModel<String>() {
+            String[] strings = { "Item 1", "Item 2", "Item 3", "Item 4", "Item 5" };
+            public int getSize() { return strings.length; }
+            public String getElementAt(int i) { return strings[i]; }
+        });
+        pane.setViewportView(jListFiles);
+
+        jButton1.setText("Cerrar");
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -110,21 +133,21 @@ public class Cliente extends javax.swing.JFrame {
                             .addComponent(jLabel3))
                         .addGap(28, 28, 28)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(txtIP)
+                            .addComponent(txtIP, javax.swing.GroupLayout.DEFAULT_SIZE, 152, Short.MAX_VALUE)
                             .addComponent(txtPuerto)))
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(jButton3)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(btnConectar))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addGap(0, 0, Short.MAX_VALUE)
+                        .addComponent(jButton1)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(btnConectar))
+                    .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                                .addComponent(btnEnviar, javax.swing.GroupLayout.PREFERRED_SIZE, 139, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(324, 324, 324))
-                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                                .addComponent(btnRecibir)
-                                .addGap(354, 354, 354)))))
+                            .addComponent(btnEnviar, javax.swing.GroupLayout.PREFERRED_SIZE, 139, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(btnRecibir)
+                            .addComponent(jButton3))
+                        .addGap(53, 53, 53)
+                        .addComponent(pane, javax.swing.GroupLayout.PREFERRED_SIZE, 254, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -139,22 +162,29 @@ public class Cliente extends javax.swing.JFrame {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel3)
                     .addComponent(txtIP, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(btnConectar)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(btnEnviar)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(btnRecibir)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jButton3)
-                .addContainerGap(136, Short.MAX_VALUE))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(48, 48, 48)
+                        .addComponent(btnEnviar)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(btnRecibir)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jButton3))
+                    .addGroup(layout.createSequentialGroup()
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(btnConectar)
+                            .addComponent(jButton1))
+                        .addGap(28, 28, 28)
+                        .addComponent(pane, javax.swing.GroupLayout.PREFERRED_SIZE, 186, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap(30, Short.MAX_VALUE))
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnRecibirActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRecibirActionPerformed
-
+        
     }//GEN-LAST:event_btnRecibirActionPerformed
 
     private void btnConectarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnConectarActionPerformed
@@ -221,18 +251,19 @@ public class Cliente extends javax.swing.JFrame {
 
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
         //En esta aparte de recupera los archivos que tiene la carpeta de recuperacion 
-        int x = 0;
-        File[] archivos = f.listFiles();
-        String[] cadena = new String[archivos.length];
-        for (File i : archivos) {
-            cadena[x] = i.getName();
-            x++;
-        }
-
-        lista = new JList(cadena);
-        lista.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
-
+        File files = new File("archivos_cliente");
+        String lista[] = files.list();
+        this.jListFiles.removeAll();
+        this.jListFiles.setListData(lista);
     }//GEN-LAST:event_jButton3ActionPerformed
+
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+        try {
+            cliente.close();
+        } catch (IOException ex) {
+            Logger.getLogger(Cliente.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }//GEN-LAST:event_jButton1ActionPerformed
 
     /**
      * @param args the command line arguments
@@ -273,11 +304,51 @@ public class Cliente extends javax.swing.JFrame {
     private javax.swing.JButton btnConectar;
     private javax.swing.JButton btnEnviar;
     private javax.swing.JRadioButton btnRecibir;
+    private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton3;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
+    private javax.swing.JList<String> jListFiles;
+    private javax.swing.JScrollPane pane;
     private javax.swing.JTextField txtIP;
     private javax.swing.JTextField txtPuerto;
     // End of variables declaration//GEN-END:variables
+    public void start(){
+        if(hilo==null){
+            hilo= new Thread(this);
+            hilo.start();
+        }
+    }
+    @Override
+    public void run() {
+        while(hilo.isAlive()){
+            if(btnRecibir.isSelected()){
+                System.out.println("estoy aqui");
+                int len;
+                byte buffer[];
+                try {
+                    while (true) {           
+                        buffer = new byte[1024];
+                        BufferedInputStream bis = new BufferedInputStream(this.cliente.getInputStream());
+                        DataInputStream dis = new DataInputStream(this.cliente.getInputStream());
+                        //Recuperamos el nombre del fichero
+                        String file = dis.readUTF();
+                        String pathFile = "archivos_cliente/" + file;
+                        //Para guardar fichero recibido
+                        BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(pathFile));
+                        while ((len = bis.read(buffer)) != -1){
+                            bos.write(buffer, 0, len);
+                        }
+                        bos.close();
+                        dis.close();
+                    }
+                } 
+                catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+            }
+        }
+        
+    }
 }
