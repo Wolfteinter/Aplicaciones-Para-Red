@@ -5,14 +5,15 @@
  */
 package Practica2;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.io.PrintStream;
+import java.io.ObjectOutputStream;
 import java.net.Socket;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.JFileChooser;
 import javax.swing.JList;
 import javax.swing.ListSelectionModel;
@@ -30,9 +31,11 @@ public class Cliente extends javax.swing.JFrame {
     File f;
     JList lista;
     boolean bandera;
+  
+
     public Cliente() {
-        
-        f  = new File("archivos_cliente");
+
+        f = new File("archivos_cliente");
         initComponents();
     }
 
@@ -151,52 +154,84 @@ public class Cliente extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnRecibirActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRecibirActionPerformed
-        
+
     }//GEN-LAST:event_btnRecibirActionPerformed
 
     private void btnConectarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnConectarActionPerformed
         try {
-            cliente = new Socket(txtIP.getText(),Integer.parseInt(txtPuerto.getText()));
+            cliente = new Socket(txtIP.getText(), Integer.parseInt(txtPuerto.getText()));
         } catch (IOException ex) {
             ex.printStackTrace();
         }
     }//GEN-LAST:event_btnConectarActionPerformed
 
     private void btnEnviarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEnviarActionPerformed
-
+         DataInputStream input;
+        BufferedInputStream bis;
+        BufferedOutputStream bos;
+        int in;
+        byte[] byteArray;
+        //Fichero a transferir
+        //final String filename = "test.txt";
+        JFileChooser file = new JFileChooser();
+        file.showOpenDialog(file);
+        File localFile = file.getSelectedFile();
+        System.out.println(localFile);
         try {
-            
-            OutputStream os = this.cliente.getOutputStream();
-            PrintStream envio = new PrintStream(os);
-            //Añadir chouser
-            JFileChooser file = new JFileChooser();
-            file.showOpenDialog(file);
-            File abre = file.getSelectedFile();
-            
-            FileInputStream origen = new FileInputStream(abre.getAbsolutePath());
-            byte[] buffer = new byte[1024];
-            int len = 0;
-            while((len = origen.read(buffer)) > 0)
-                envio.write(buffer,0,len);
-            
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        } 
+
+            bis = new BufferedInputStream(new FileInputStream(localFile));
+            bos = new BufferedOutputStream(cliente.getOutputStream());
+            //Enviamos el nombre del fichero
+            DataOutputStream dos = new DataOutputStream(cliente.getOutputStream());
+            String cadenas[] = localFile.getName().split("/");
+            String rutaRelativa = cadenas[cadenas.length - 1];
+            System.out.println(rutaRelativa);
+            dos.writeUTF(rutaRelativa);
+            //Enviamos el fichero
+            byteArray = new byte[1024];
+
+            while ((in = bis.read(byteArray)) != -1){
+                bos.write(byteArray,0,in);
+            }
+            bis.close();
+            bos.close();
+        }
+        catch ( Exception e ) {
+            System.err.println(e);
+        }
+//        try {
+//            
+//            OutputStream os = this.cliente.getOutputStream();
+//            PrintStream envio = new PrintStream(os);
+//            //Añadir chouser
+//            JFileChooser file = new JFileChooser();
+//            file.showOpenDialog(file);
+//            File abre = file.getSelectedFile();
+//            
+//            FileInputStream origen = new FileInputStream(abre.getAbsolutePath());
+//            byte[] buffer = new byte[1024];
+//            int len = 0;
+//            while((len = origen.read(buffer)) > 0)
+//                envio.write(buffer,0,len);
+//            
+//        } catch (IOException ex) {
+//            ex.printStackTrace();
+//        } 
     }//GEN-LAST:event_btnEnviarActionPerformed
 
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
         //En esta aparte de recupera los archivos que tiene la carpeta de recuperacion 
-        int x=0;
+        int x = 0;
         File[] archivos = f.listFiles();
-        String[] cadena= new String[archivos.length];
-         for(File i :archivos){
-             cadena[x]=i.getName();
+        String[] cadena = new String[archivos.length];
+        for (File i : archivos) {
+            cadena[x] = i.getName();
             x++;
         }
-        
+
         lista = new JList(cadena);
         lista.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
-       
+
     }//GEN-LAST:event_jButton3ActionPerformed
 
     /**

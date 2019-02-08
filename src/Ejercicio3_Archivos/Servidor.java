@@ -23,7 +23,7 @@ public class Servidor {
             ServerSocket servidor =  new ServerSocket(5500);
             Socket cliente = servidor.accept();
             InputStream llegada = cliente.getInputStream();
-            FileOutputStream destino = new FileOutputStream("copia_video.mp4");
+            FileOutputStream destino = new FileOutputStream("copia_video.jpg");
             byte[] buffer = new byte[1024];
             int len=0;
             while((len = llegada.read(buffer)) > 0)

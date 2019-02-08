@@ -26,7 +26,7 @@ public class Cliente {
             Socket s = new Socket("127.0.0.1",5500);
             OutputStream os = s.getOutputStream();
             PrintStream envio = new PrintStream(os);
-            FileInputStream origen = new FileInputStream("video.mp4");
+            FileInputStream origen = new FileInputStream("monte.jpg");
             byte[] buffer = new byte[1024];
             int len = 0;
             while((len = origen.read(buffer)) > 0)
